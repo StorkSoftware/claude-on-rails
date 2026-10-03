@@ -1,11 +1,10 @@
-gem "lucide-rails"
-
-tasks_json_path = File.join(__dir__, 'tasks.json')
-tasks_json = File.read(tasks_json_path)
-
-create_file '.vscode/tasks.json' do
-  tasks_json
+def source_paths
+  [ __dir__ ] + super
 end
+
+directory "rails", "."
+
+gem "lucide-rails"
 
 simplecov_rb_path = File.join(__dir__, 'simplecov.rb')
 simplecov_rb = File.read(simplecov_rb_path)

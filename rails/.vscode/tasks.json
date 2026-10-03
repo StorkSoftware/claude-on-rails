@@ -1,0 +1,99 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "console",
+            "type": "shell",
+            "command": "bin/rails",
+            "args": [ "console" ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "detail": "Run the bin/rails console command to start the Rails console.",
+            "icon": {
+                "id": "terminal",
+                "color": "terminal.ansiRed"
+            }
+        },
+        {
+            "label": "jobs",
+            "type": "shell",
+            "command": "bin/jobs",
+            "args": [ "start" ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "detail": "Run the bin/jobs command to start the background job processor.",
+            "icon": {
+                "id": "zap",
+                "color": "terminal.ansiYellow"
+            }
+        },
+        {
+            "label": "tailwind",
+            "type": "shell",
+            "command": "bin/rails",
+            "args": [ "tailwindcss:watch" ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "detail": "Run the bin/rails tailwindcss:watch command to start the Tailwind CSS watcher.",
+            "icon": {
+                "id": "paintcan",
+                "color": "terminal.ansiBlue"
+            }
+        },
+        {
+            "label": "server",
+            "type": "shell",
+            "command": "bin/rails",
+            "args": ["server"],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "detail": "Run the bin/rails server command to start the Rails server.",
+            "icon": {
+                "id": "server",
+                "color": "terminal.ansiRed"
+            }
+        },
+        {
+            "label": "bootstrap",
+            "dependsOrder": "parallel",
+            "dependsOn": [ "console", "server", "tailwind", "jobs" ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        },
+        {
+            "label": "open coverage",
+            "type": "shell",
+            "command": "open",
+            "args": ["coverage/index.html"],
+            "group": {
+                "kind": "test",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "never",
+                "panel": "shared",
+                "showReuseMessage": false,
+                "close": true
+            },  
+            "problemMatcher": [],
+            "detail": "Open the coverage report in the default web browser."
+        }
+    ]
+}
