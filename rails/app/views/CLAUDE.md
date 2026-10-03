@@ -2,10 +2,16 @@
 
 ## Components
 
-- Build every view from **Tailwind Plus** components in `.twp/`. Browse that
-  directory first and adapt the closest matching component (buttons, form
-  layouts, tables, stacked lists, description lists, empty states, page
-  headings) rather than writing markup from scratch.
+- Build every view from **Tailwind Plus** components, fetched through the
+  `TailwindPlusServer` MCP server. Look the component up first and adapt the
+  closest match (buttons, form layouts, tables, stacked lists, description
+  lists, empty states, page headings) rather than writing markup from scratch:
+  - `search_components` — find candidates by name or keyword;
+    `list_subcategories` shows what exists when a search comes up empty.
+  - `get_component` — fetch the HTML of the chosen match, then convert it to
+    ERB with Rails helpers (`form_with`, `link_to`, `button_to`, `t()`).
+  - Prefer the **Application UI** product for views inside the app; use
+    **Marketing** only for public pages.
 - Style with plain Tailwind utilities. Every view supports light and dark mode
   (`dark:` variants) and is mobile-first (responsive modifiers).
 - **Icons**: `lucide_icon "chevron-right", class: "size-5"` — verify the icon

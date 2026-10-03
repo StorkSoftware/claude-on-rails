@@ -11,7 +11,7 @@ changes, and keep them current as decisions are made.
 - **Ruby** <!-- TODO: version -->, **Rails** <!-- TODO: version -->
 - **Database**: PostgreSQL via `pg` gem — primary data and the Solid adapters
 - **Frontend**: Propshaft + Import maps + Tailwind CSS + Hotwire (Turbo + Stimulus)
-- **UI components**: Tailwind Plus (vendored in `.twp/`)
+- **UI components**: Tailwind Plus, via the `TailwindPlusServer` MCP server
 - **Icons**: `lucide-rails`
 - **Caching**: Solid Cache (DB-backed `Rails.cache`)
 - **Jobs**: Solid Queue (DB-backed Active Job)
@@ -182,9 +182,10 @@ front end:
 
 ## UI Conventions
 
-- **All web UI must be built from Tailwind Plus components** — they live in
-  `.twp/`. Browse that directory first whenever designing or updating a view;
-  adapt the closest matching component rather than writing UI from scratch.
+- **All web UI must be built from Tailwind Plus components**, fetched through
+  the `TailwindPlusServer` MCP server. Search it first whenever designing or
+  updating a view; adapt the closest matching component rather than writing UI
+  from scratch. See [app/views/CLAUDE.md](app/views/CLAUDE.md).
 - **Use lucide icons** via `lucide-rails` instead of hand-drawn SVG. Verify an
   icon exists at https://lucide.dev/icons/ before using its slug in the helper.
 - **Dark mode and mobile-first are mandatory.** Every page has four variants:
