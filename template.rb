@@ -1,4 +1,5 @@
 require_relative 'database_install'
+require_relative 'seeds_install'
 require_relative 'solid_cable_install'
 require_relative 'solid_queue_install'
 require_relative 'simplecov_install'
@@ -58,7 +59,9 @@ after_bundle do
   rails_command "db:prepare"
 
   generate "authentication"
+  patch_seeds
   rails_command "db:migrate"
+  rails_command "db:seed"
   git add: ".", commit: %(-m 'Generate authentication')
 
   if use_llm
