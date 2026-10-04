@@ -46,14 +46,17 @@ describe; the template does not set them itself.
      `ruby_llm`.
 3. Prepends [simplecov.rb](simplecov.rb) to `test/test_helper.rb`, so coverage
    is reported to `coverage/index.html` on every test run (minimum 80%).
-4. After `bundle install`:
-   - initializes git and commits as `Initial commit`;
-   - runs the Rails authentication generator (and `ruby_llm:install` if chosen);
-   - installs Solid Cable, Solid Cache and Solid Queue, and configures them for
-     development too: separate `cache`, `queue` and `cable` databases in
-     `config/database.yml`, the `solid_cable` adapter in `config/cable.yml`,
-     and the `solid_queue` job adapter in `config/environments/development.rb`;
-   - runs `db:prepare` and commits as `Generate authentication`.
+4. After `bundle install`, commits each step separately:
+
+   | Commit | Step |
+   | --- | --- |
+   | `Initial commit` | The generated app |
+   | `Add cache, queue and cable databases for development` | Splits development in `config/database.yml` into `primary`, `cache`, `queue` and `cable` |
+   | `Install Solid Cable` | Runs the installer and switches development to the `solid_cable` adapter in `config/cable.yml` |
+   | `Install Solid Cache` | Runs the installer |
+   | `Install Solid Queue` | Runs the installer and sets the `solid_queue` job adapter in `config/environments/development.rb` |
+   | `Generate authentication` | Runs `db:prepare`, then the authentication generator and its migration |
+   | `Install RubyLLM` | Only if chosen: runs `ruby_llm:install` and its migrations |
 
 ## After generating
 
