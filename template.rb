@@ -1,6 +1,7 @@
 require_relative 'database_install'
 require_relative 'solid_cable_install'
 require_relative 'solid_queue_install'
+require_relative 'simplecov_install'
 
 def source_paths
   [ __dir__ ] + super
@@ -10,16 +11,11 @@ directory "rails", "."
 
 gem "lucide-rails"
 
-simplecov_rb_path = File.join(__dir__, 'simplecov.rb')
-simplecov_rb = File.read(simplecov_rb_path)
-
-prepend_to_file 'test/test_helper.rb' do
-  simplecov_rb
-end
-
 gem_group :test do
   gem "simplecov", require: false
 end
+
+patch_test_helper
 
 gem_group :development do
   gem "hotwire-spark", "~> 0.1.13"
@@ -50,26 +46,20 @@ after_bundle do
   patch_database_config(app_name)
   git add: ".", commit: %(-m 'Add cache, queue and cable databases for development')
 
-  generate "solid_cable:install"
+  # `rails new` already ran the solid_cable, solid_cache and solid_queue
+  # installers; re-running them changes nothing, and committing an empty
+  # step makes `git commit` fail and abort the template.
   patch_cable_config
-  git add: ".", commit: %(-m 'Install Solid Cable')
+  git add: ".", commit: %(-m 'Use Solid Cable in development')
 
-  generate "solid_cache:install"
-  git add: ".", commit: %(-m 'Install Solid Cache')
-
-  generate "solid_queue:install"
   patch_queue_config
-  git add: ".", commit: %(-m 'Install Solid Queue')
-
-  rails_command "db:prepare"
+  git add: ".", commit: %(-m 'Use Solid Queue in development')
 
   generate "authentication"
-  rails_command "db:migrate"
   git add: ".", commit: %(-m 'Generate authentication')
 
   if use_llm
     generate "ruby_llm:install"
-    rails_command "db:migrate"
     git add: ".", commit: %(-m 'Install RubyLLM')
   end
 end

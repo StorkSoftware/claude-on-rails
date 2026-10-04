@@ -8,7 +8,7 @@ generic, project-agnostic set of `CLAUDE.md` files for Claude Code.
 | Path | Purpose |
 | --- | --- |
 | [template.rb](template.rb) | The application template passed to `rails new -m` |
-| [simplecov.rb](simplecov.rb) | SimpleCov setup, prepended to `test/test_helper.rb` |
+| [simplecov_install.rb](simplecov_install.rb) | Prepends the SimpleCov setup to `test/test_helper.rb` |
 | [rails/](rails/) | Copied verbatim into the new app's root, keeping its structure |
 
 `rails/` holds:
@@ -44,7 +44,7 @@ describe; the template does not set them itself.
    - always: `lucide-rails`, `simplecov` (test), `hotwire-spark` (development);
    - on request: `rotp` + `rqrcode` (2FA), `stripe`, `postmark-rails`,
      `ruby_llm`.
-3. Prepends [simplecov.rb](simplecov.rb) to `test/test_helper.rb`, so coverage
+3. Prepends the SimpleCov setup from [simplecov_install.rb](simplecov_install.rb) to `test/test_helper.rb`, so coverage
    is reported to `coverage/index.html` on every test run (minimum 80%).
 4. After `bundle install`, commits each step separately:
 
@@ -52,9 +52,8 @@ describe; the template does not set them itself.
    | --- | --- |
    | `Initial commit` | The generated app |
    | `Add cache, queue and cable databases for development` | Splits development in `config/database.yml` into `primary`, `cache`, `queue` and `cable` |
-   | `Install Solid Cable` | Runs the installer and switches development to the `solid_cable` adapter in `config/cable.yml` |
-   | `Install Solid Cache` | Runs the installer |
-   | `Install Solid Queue` | Runs the installer and sets the `solid_queue` job adapter in `config/environments/development.rb` |
+   | `Use Solid Cable in development` | Switches development to the `solid_cable` adapter in `config/cable.yml` |
+   | `Use Solid Queue in development` | Sets the `solid_queue` job adapter and queue database in `config/environments/development.rb` |
    | `Generate authentication` | Runs `db:prepare`, then the authentication generator and its migration |
    | `Install RubyLLM` | Only if chosen: runs `ruby_llm:install` and its migrations |
 
