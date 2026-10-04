@@ -55,11 +55,15 @@ after_bundle do
   patch_queue_config
   git add: ".", commit: %(-m 'Use Solid Queue in development')
 
+  rails_command "db:prepare"
+
   generate "authentication"
+  rails_command "db:migrate"
   git add: ".", commit: %(-m 'Generate authentication')
 
   if use_llm
     generate "ruby_llm:install"
+    rails_command "db:migrate"
     git add: ".", commit: %(-m 'Install RubyLLM')
   end
 end
