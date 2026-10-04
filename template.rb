@@ -1,3 +1,7 @@
+require_relative 'database_install'
+require_relative 'solid_cable_install'
+require_relative 'solid_queue_install'
+
 def source_paths
   [ __dir__ ] + super
 end
@@ -47,7 +51,15 @@ after_bundle do
 
   generate "ruby_llm:install" if use_llm
 
-  rails_command "db:migrate"
+  generate "solid_cable:install"
+  generate "solid_cache:install"
+  generate "solid_queue:install"
+
+  patch_database_config(app_name)
+  patch_cable_config
+  patch_queue_config
+
+  rails_command "db:prepare"
 
   git add: ".", commit: %(-m 'Generate authentication')
 end
