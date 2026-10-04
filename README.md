@@ -55,3 +55,66 @@ describe; the template does not set them itself.
      and the `solid_queue` job adapter in `config/environments/development.rb`;
    - runs `db:prepare` and commits as `Generate authentication`.
 
+## After generating
+
+### Required: generate a controller for the root route
+
+`rails new` does not define a root route, but the authentication generator
+redirects to `root_url` after sign-in. Until a root route exists,
+`SessionsControllerTest#test_create_with_valid_credentials` fails with
+`NameError: undefined local variable or method 'root_url'`, and so does
+`bin/ci`.
+
+The template does not add one, because where root points depends on the
+project. Generate the controller yourself, then point `root` at it in
+`config/routes.rb`:
+
+- **A single public page:**
+
+  ```bash
+  bin/rails generate controller Pages home --skip-routes
+  ```
+
+  ```ruby
+  root "pages#home"
+  ```
+
+- **A page inside a product area (namespace):**
+
+  ```bash
+  bin/rails generate controller Members::Dashboard show --skip-routes
+  ```
+
+  ```ruby
+  root "members/dashboard#show"
+  ```
+
+`--skip-routes` stops the generator from adding a `get` route next to `root`.
+Run `bin/ci` afterwards to confirm the suite passes.
+
+### Fill in the placeholders
+
+Every project-specific gap in the copied docs is marked with an HTML comment:
+
+```bash
+grep -rn "TODO" --include="*.md" .
+```
+
+Start with the project name and overview in `CLAUDE.md`, the roles, and the
+glossary in `CONTEXT.md`.
+
+### Set up what the docs assume
+
+The `CLAUDE.md` files describe a few things the template does not install.
+Add them, or remove the matching sections from the docs:
+
+- **Pundit and rolify** — authorization and roles.
+- **TailwindPlusServer MCP server** — `app/views/CLAUDE.md` tells Claude to
+  fetch components from it. Connect it under that exact name.
+- **`bin/ci` options and the pre-push hook** — `CLAUDE.md` describes
+  `--with-system-tests` and a `.githooks/pre-push` hook activated by
+  `bin/setup`.
+- **System tests pinned to a single worker** in
+  `test/application_system_test_case.rb`.
+- **Strict CSP** — the policy in `config/initializers/content_security_policy.rb`
+  and Active Storage in proxy mode.
