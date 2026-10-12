@@ -28,6 +28,9 @@ changes, and keep them current as decisions are made.
 
 ## Commands
 
+**Always** use `bin/rails generate` to create new files (controllers, views, models, migrations, et cetera).
+**Never** write files by hand. Especially not @db/schema.rb. It will be updated using migration commands.
+
 ```bash
 bin/setup                # Install dependencies, prepare the database, activate git hooks
 bin/dev                  # Start dev server (Puma + Tailwind watcher via Procfile.dev)
