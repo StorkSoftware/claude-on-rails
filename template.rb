@@ -1,4 +1,5 @@
 require_relative 'database_install'
+require_relative 'home_install'
 require_relative 'seeds_install'
 require_relative 'solid_cable_install'
 require_relative 'solid_queue_install'
@@ -63,6 +64,9 @@ after_bundle do
   rails_command "db:migrate"
   rails_command "db:seed"
   git add: ".", commit: %(-m 'Generate authentication')
+
+  install_home
+  git add: ".", commit: %(-m 'Add home page as root')
 
   if use_llm
     generate "ruby_llm:install"
