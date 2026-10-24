@@ -13,4 +13,6 @@ def patch_test_helper
 
     RUBY
   end
+
+  append_to_file ".gitignore", "\n# Ignore SimpleCov output.\n/coverage/\n"
 end
