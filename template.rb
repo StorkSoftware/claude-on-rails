@@ -1,6 +1,7 @@
 require_relative 'database_install'
 require_relative 'home_install'
 require_relative 'seeds_install'
+require_relative 'setup_install'
 require_relative 'solid_cable_install'
 require_relative 'solid_queue_install'
 require_relative 'simplecov_install'
@@ -47,6 +48,9 @@ after_bundle do
 
   patch_database_config(app_name)
   git add: ".", commit: %(-m 'Add cache, queue and cable databases for development')
+
+  patch_setup
+  git add: ".", commit: %(-m 'Link untracked files into worktrees in bin/setup')
 
   # `rails new` already ran the solid_cable, solid_cache and solid_queue
   # installers; re-running them changes nothing, and committing an empty
