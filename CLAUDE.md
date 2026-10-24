@@ -1,0 +1,1 @@
+After your template.rb changes, generate a fresh app in /tmp with `rails new check_app -m ./template.rb`. Run `bin/rails db:prepare` and `bin/ci` there, and confirm there are no pending migrations or generator errors. Report results before committing, then delete the temp app and its databases.

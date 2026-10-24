@@ -14,8 +14,6 @@
     **Marketing** only for public pages.
 - Style with plain Tailwind utilities. Every view supports light and dark mode
   (`dark:` variants) and is mobile-first (responsive modifiers).
-- **Icons**: `lucide_icon "chevron-right", class: "size-5"` — verify the icon
-  exists at https://lucide.dev/icons/ before using its slug.
 
 ## Technology constraints
 
