@@ -11,6 +11,7 @@ def source_paths
 end
 
 directory "rails", "."
+chmod "bin/worktree-teardown", 0755
 
 gem "lucide-rails"
 

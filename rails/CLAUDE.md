@@ -162,6 +162,11 @@ anything else. Without `--skip-server` it ends by starting `bin/dev`. In a
 worktree it also symlinks the gitignored `.env*` and `config/**/*.key` files
 from the main checkout.
 
+Remove a worktree only with `bin/worktree-teardown`, run from inside it. It
+drops the worktree's databases, including the parallel test worker copies
+(`_0`, `_1`, …), then
+runs `git worktree remove` (extra arguments such as `--force` are passed on).
+
 ## Commits
 
 - Work on a feature branch. Commit straight to `main` only when explicitly asked.

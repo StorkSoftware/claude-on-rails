@@ -1,0 +1,45 @@
+#!/usr/bin/env ruby
+require "fileutils"
+
+APP_ROOT = File.realpath(File.expand_path("..", __dir__))
+
+def system!(*args)
+  system(*args, exception: true)
+end
+
+# Workers are named "<test db>_<n>", so "<test db>_2" may also be the test
+# database of a sibling worktree named "<this worktree>_2"; those are skipped.
+DROP_TEST_WORKER_DATABASES = <<~RUBY
+  config = ActiveRecord::Base.configurations.configs_for(env_name: "test", name: "primary")
+  sibling_suffixes = ENV.fetch("SIBLING_WORKTREE_SUFFIXES").split(",")
+  worker_database = /\\A\#{Regexp.escape(config.database)}_\\d+\\z/
+  ActiveRecord::Base.establish_connection(config.configuration_hash.merge(database: "postgres"))
+  connection = ActiveRecord::Base.lease_connection
+  connection.select_values("SELECT datname FROM pg_database").grep(worker_database).each do |name|
+    next if sibling_suffixes.any? { |suffix| name.end_with?(suffix) }
+
+    connection.drop_database(name)
+    puts "Dropped database '\#{name}'"
+  end
+RUBY
+
+FileUtils.chdir APP_ROOT do
+  abort "#{APP_ROOT} is not a linked git worktree" unless File.file?(".git")
+
+  git_common_dir = IO.popen(%w[git rev-parse --path-format=absolute --git-common-dir], &:read).strip
+  main_checkout = File.realpath(File.dirname(git_common_dir))
+  sibling_suffixes = IO.popen(%w[git worktree list --porcelain], &:read).scan(/^worktree (.+)$/).flatten
+    .map { |path| File.realpath(path) rescue path }
+    .reject { |path| [ APP_ROOT, main_checkout ].include?(path) }
+    .map { |path| "_" + File.basename(path).gsub(/\W/, "_")[0, 30] }
+
+  puts "== Dropping development and test databases =="
+  system! "bin/rails db:drop"
+
+  puts "\n== Dropping parallel test worker databases =="
+  system!({ "SIBLING_WORKTREE_SUFFIXES" => sibling_suffixes.join(",") },
+    "bin/rails", "runner", "-e", "test", DROP_TEST_WORKER_DATABASES)
+
+  puts "\n== Removing worktree =="
+  system! "git", "-C", main_checkout, "worktree", "remove", *ARGV, APP_ROOT
+end
