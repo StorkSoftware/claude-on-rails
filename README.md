@@ -44,7 +44,29 @@ rails new my_app -d postgresql --css tailwind -m ~/Development/Claude/template.r
 ```
 
 `-d postgresql` and `--css tailwind` match the stack the `CLAUDE.md` files
-describe; the template does not set them itself.
+describe. The template does not set them itself, but it stops with an error if
+either is missing (flags in `~/.railsrc` count). `rails new` has already
+written the app's files by then, so delete the partial app directory before
+running it again.
+
+### Answering the prompts non-interactively
+
+Each yes/no prompt can be answered with an environment variable instead.
+Accepted values are `y`/`yes`/`true`/`1` and `n`/`no`/`false`/`0`. An unset or
+empty variable falls back to the prompt, and any other value stops the
+template.
+
+| Variable | Prompt |
+| --- | --- |
+| `TEMPLATE_2FA` | Do you need 2FA? (`rotp`, `rqrcode`) |
+| `TEMPLATE_STRIPE` | Do you need stripe? (`stripe`) |
+| `TEMPLATE_POSTMARK` | Will you use postmark for receiving emails? (`postmark-rails`) |
+| `TEMPLATE_LLM` | Do you need LLM support? (`ruby_llm`) |
+
+```bash
+TEMPLATE_2FA=y TEMPLATE_STRIPE=n TEMPLATE_POSTMARK=n TEMPLATE_LLM=y \
+  rails new my_app -d postgresql --css tailwind -m ~/Development/Claude/template.rb
+```
 
 ### What the template does
 
