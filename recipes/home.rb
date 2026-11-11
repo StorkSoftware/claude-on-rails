@@ -1,4 +1,6 @@
-def install_home
+# Adds a signed-in home page as the root route, which the authentication
+# generator redirects to after sign-in.
+after_bundle do
   generate "controller", "home", "index", "--skip-routes"
   route 'root "home#index"'
 
@@ -20,4 +22,6 @@ def install_home
       end
     RUBY
   end
+
+  commit "Add home page as root"
 end

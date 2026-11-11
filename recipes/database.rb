@@ -1,7 +1,9 @@
-def patch_database_config(app_name)
+# Splits development into primary, cache, queue and cable databases, and gives
+# each linked git worktree its own databases.
+after_bundle do
   # A linked git worktree has a `.git` file instead of a directory. Give each
   # worktree its own databases so parallel checkouts don't share data.
-  prepend_to_file 'config/database.yml' do
+  prepend_to_file "config/database.yml" do
     <<~ERB
       <%
         worktree = File.file?(Rails.root.join(".git")) ? Rails.root.basename.to_s : nil
@@ -10,7 +12,7 @@ def patch_database_config(app_name)
     ERB
   end
 
-  gsub_file 'config/database.yml', /^development:\n  <<: \*default\n  database: #{app_name}_development\n/ do
+  gsub_file "config/database.yml", /^development:\n  <<: \*default\n  database: #{app_name}_development\n/ do
     <<~YAML
       development:
         primary:
@@ -31,11 +33,13 @@ def patch_database_config(app_name)
     YAML
   end
 
-  gsub_file 'config/database.yml', /^test:\n  <<: \*default\n  database: #{app_name}_test\n/ do
+  gsub_file "config/database.yml", /^test:\n  <<: \*default\n  database: #{app_name}_test\n/ do
     <<~YAML
       test:
         <<: *default
         database: #{app_name}_test<%= suffix %>
     YAML
   end
+
+  commit "Add cache, queue and cable databases for development"
 end
