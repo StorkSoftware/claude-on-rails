@@ -88,6 +88,9 @@ TEMPLATE_2FA=y TEMPLATE_STRIPE=n TEMPLATE_POSTMARK=n TEMPLATE_LLM=y \
    | `Use Solid Queue in development` | [solid_queue](recipes/solid_queue.rb) | Sets the `solid_queue` job adapter and queue database in `config/environments/development.rb` |
    | `Generate authentication` | [authentication](recipes/authentication.rb) | Runs `db:prepare`, the authentication generator and its migration, and seeds `dev@localhost.test` / `password` |
    | `Add home page as root` | [home](recipes/home.rb) | Generates `HomeController#index` and points `root` at it |
+   | `Add system tests pinned to a single worker` | [system_tests](recipes/system_tests.rb) | Adds `test/application_system_test_case.rb` (headless Chrome, one worker, coverage merged into the unit run) and a sign-in test that checks Turbo and Stimulus boot |
+   | `Add bin/ci --with-system-tests and a pre-push hook` | [ci](recipes/ci.rb) | Adds the opt-in system test step to `config/ci.rb`, and a `.githooks/pre-push` hook running `bin/ci` that `bin/setup` activates |
+   | `Enforce a same-origin Content Security Policy` | [csp](recipes/csp.rb) | Sets every fetch directive to `'self'`, `script-src` with `'strict-dynamic'` and a per-session nonce, and Active Storage proxy mode |
    | `Install RubyLLM` | [ruby_llm](recipes/ruby_llm.rb) | Only if chosen: runs `ruby_llm:install` and its migrations |
 
 ## After generating
@@ -111,10 +114,6 @@ Add them, or remove the matching sections from the docs:
 - **Pundit and rolify** — authorization and roles.
 - **TailwindPlusServer MCP server** — `app/views/CLAUDE.md` tells Claude to
   fetch components from it. Connect it under that exact name.
-- **`bin/ci` options and the pre-push hook** — `CLAUDE.md` describes
-  `--with-system-tests` and a `.githooks/pre-push` hook activated by
-  `bin/setup`.
-- **System tests pinned to a single worker** in
-  `test/application_system_test_case.rb`.
-- **Strict CSP** — the policy in `config/initializers/content_security_policy.rb`
-  and Active Storage in proxy mode.
+
+`bin/setup` points git at `.githooks`, so after it runs every `git push` runs
+`bin/ci` first. Skip it for one push with `git push --no-verify`.

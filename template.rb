@@ -78,4 +78,7 @@ recipe "solid_cable"
 recipe "solid_queue"
 recipe "authentication"
 recipe "home"
+recipe "system_tests"
+recipe "ci"
+recipe "csp"
 recipe "ruby_llm" if use_llm
