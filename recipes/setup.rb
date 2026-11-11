@@ -1,4 +1,6 @@
-def patch_setup
+# Makes bin/setup symlink untracked files (.env, keys) from the main checkout
+# when run inside a linked git worktree.
+after_bundle do
   inject_into_file "bin/setup", after: "FileUtils.chdir APP_ROOT do\n" do
     <<-RUBY
   if File.file?(".git")
@@ -18,4 +20,6 @@ def patch_setup
 
     RUBY
   end
+
+  commit "Link untracked files into worktrees in bin/setup"
 end

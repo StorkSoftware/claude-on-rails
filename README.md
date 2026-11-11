@@ -7,9 +7,18 @@ generic, project-agnostic set of `CLAUDE.md` files for Claude Code.
 
 | Path | Purpose |
 | --- | --- |
-| [template.rb](template.rb) | The application template passed to `rails new -m` |
-| [simplecov_install.rb](simplecov_install.rb) | Prepends the SimpleCov setup to `test/test_helper.rb` |
+| [template.rb](template.rb) | The application template passed to `rails new -m`: prompts, shared gems and the ordered list of recipes |
+| [recipes/](recipes/) | One file per step. Each recipe adds its own gems, applies its patch and makes its own commit |
 | [rails/](rails/) | Copied verbatim into the new app's root, keeping its structure |
+
+### Adding a recipe
+
+Create `recipes/<name>.rb` and add `recipe "<name>"` to `template.rb` where
+the step belongs. Recipes run inside the template's generator, so they can
+use any template action. Wrap work that needs installed gems or the initial
+commit in `after_bundle`, and end it with `commit "<message>"`. `after_bundle`
+blocks run in the order the recipes are applied, so the recipe list in
+`template.rb` sets the commit order.
 
 `rails/` holds:
 
@@ -44,55 +53,22 @@ describe; the template does not set them itself.
    - always: `lucide-rails`, `simplecov` (test), `hotwire-spark` (development);
    - on request: `rotp` + `rqrcode` (2FA), `stripe`, `postmark-rails`,
      `ruby_llm`.
-3. Prepends the SimpleCov setup from [simplecov_install.rb](simplecov_install.rb) to `test/test_helper.rb`, so coverage
+3. Prepends the SimpleCov setup from [recipes/simplecov.rb](recipes/simplecov.rb) to `test/test_helper.rb`, so coverage
    is reported to `coverage/index.html` on every test run (minimum 80%).
 4. After `bundle install`, commits each step separately:
 
-   | Commit | Step |
-   | --- | --- |
-   | `Initial commit` | The generated app |
-   | `Add cache, queue and cable databases for development` | Splits development in `config/database.yml` into `primary`, `cache`, `queue` and `cable` |
-   | `Use Solid Cable in development` | Switches development to the `solid_cable` adapter in `config/cable.yml` |
-   | `Use Solid Queue in development` | Sets the `solid_queue` job adapter and queue database in `config/environments/development.rb` |
-   | `Generate authentication` | Runs `db:prepare`, then the authentication generator and its migration |
-   | `Install RubyLLM` | Only if chosen: runs `ruby_llm:install` and its migrations |
+   | Commit | Recipe | Step |
+   | --- | --- | --- |
+   | `Initial commit` | | The generated app |
+   | `Add cache, queue and cable databases for development` | [database](recipes/database.rb) | Splits development in `config/database.yml` into `primary`, `cache`, `queue` and `cable`, with per-worktree names |
+   | `Link untracked files into worktrees in bin/setup` | [setup](recipes/setup.rb) | Symlinks `.env*` and key files from the main checkout when `bin/setup` runs in a worktree |
+   | `Use Solid Cable in development` | [solid_cable](recipes/solid_cable.rb) | Switches development to the `solid_cable` adapter in `config/cable.yml` |
+   | `Use Solid Queue in development` | [solid_queue](recipes/solid_queue.rb) | Sets the `solid_queue` job adapter and queue database in `config/environments/development.rb` |
+   | `Generate authentication` | [authentication](recipes/authentication.rb) | Runs `db:prepare`, the authentication generator and its migration, and seeds `dev@localhost.test` / `password` |
+   | `Add home page as root` | [home](recipes/home.rb) | Generates `HomeController#index` and points `root` at it |
+   | `Install RubyLLM` | [ruby_llm](recipes/ruby_llm.rb) | Only if chosen: runs `ruby_llm:install` and its migrations |
 
 ## After generating
-
-### Required: generate a controller for the root route
-
-`rails new` does not define a root route, but the authentication generator
-redirects to `root_url` after sign-in. Until a root route exists,
-`SessionsControllerTest#test_create_with_valid_credentials` fails with
-`NameError: undefined local variable or method 'root_url'`, and so does
-`bin/ci`.
-
-The template does not add one, because where root points depends on the
-project. Generate the controller yourself, then point `root` at it in
-`config/routes.rb`:
-
-- **A single public page:**
-
-  ```bash
-  bin/rails generate controller Pages home --skip-routes
-  ```
-
-  ```ruby
-  root "pages#home"
-  ```
-
-- **A page inside a product area (namespace):**
-
-  ```bash
-  bin/rails generate controller Members::Dashboard show --skip-routes
-  ```
-
-  ```ruby
-  root "members/dashboard#show"
-  ```
-
-`--skip-routes` stops the generator from adding a `get` route next to `root`.
-Run `bin/ci` afterwards to confirm the suite passes.
 
 ### Fill in the placeholders
 
