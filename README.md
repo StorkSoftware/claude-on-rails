@@ -27,7 +27,7 @@ blocks run in the order the recipes are applied, so the recipe list in
 | --- | --- |
 | [CLAUDE.md](rails/CLAUDE.md) | Stack, commands, checks, code style, testing, architecture, CSP, UI, commits |
 | [CONTEXT.md](rails/CONTEXT.md) | Domain glossary (empty template) |
-| [app/controllers/CLAUDE.md](rails/app/controllers/CLAUDE.md) | Namespacing, Pundit authorization, responses, strong parameters |
+| [app/controllers/CLAUDE.md](rails/app/controllers/CLAUDE.md) | Namespacing, responses, strong parameters |
 | [app/models/CLAUDE.md](rails/app/models/CLAUDE.md) | Structural map (placeholder), code ordering, deletion semantics |
 | [app/views/CLAUDE.md](rails/app/views/CLAUDE.md) | Tailwind Plus components, view conventions, forms, localisation |
 | [config/locales/CLAUDE.md](rails/config/locales/CLAUDE.md) | Locale structure, validation messages, copy voice |
@@ -122,15 +122,14 @@ Every project-specific gap in the copied docs is marked with an HTML comment:
 grep -rn "TODO" --include="*.md" .
 ```
 
-Start with the project name and overview in `CLAUDE.md`, the roles, and the
-glossary in `CONTEXT.md`.
+Start with the project name and overview in `CLAUDE.md`, and the glossary in
+`CONTEXT.md`.
 
 ### Set up what the docs assume
 
 The `CLAUDE.md` files describe a few things the template does not install.
 Add them, or remove the matching sections from the docs:
 
-- **Pundit and rolify** — authorization and roles.
 - **TailwindPlusServer MCP server** — `app/views/CLAUDE.md` tells Claude to
   fetch components from it. Connect it under that exact name.
 

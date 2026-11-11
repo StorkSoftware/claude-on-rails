@@ -35,8 +35,8 @@ schema.rb, a reader knows not to trust the rest.
   `erDiagram`, and a table of **Table | Columns | Rules in the database**.
 - A new table joins the cluster whose tables it joins most; start a new
   cluster only when it fits none of them.
-- Framework-owned tables (rolify, Action Text, Active Storage, Solid adapters)
-  go in the Framework tables list, not in a diagram.
+- Framework-owned tables (Action Text, Active Storage, Solid adapters) go in
+  the Framework tables list, not in a diagram.
 
 ## What belongs in README.md
 

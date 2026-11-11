@@ -9,15 +9,6 @@
   enforces the area's access gate — never inherit `ApplicationController`
   directly inside an area.
 
-## Authorization (Pundit, namespaced policies)
-
-- Every action calls `authorize` with the area-namespaced policy:
-  - member actions: `authorize [ :admins, @record ]`
-  - collection actions: `authorize %i[ admins record ]`
-- Record lookup always goes through `policy_scope`, inside a `set_*`
-  before_action: `policy_scope([ :admins, Record ]).find(params[:id])`.
-  Never `Model.find` directly.
-
 ## Responses
 
 - Success: redirect with a flash from i18n —

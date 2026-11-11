@@ -28,7 +28,7 @@ Never perform SQL queries inside the views or partials. Always note that a
 model instance or class method is required to wrap a query. Always use 
 helper methods to fetch data and pass it to the view. Use memoized 
 instance variables to store fetched data. Never use N+1 queries or loop 
-inside views. Always use **pundit authorization** to check permissions.
+inside views.
 
 ### `index` views
 

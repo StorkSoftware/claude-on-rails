@@ -24,7 +24,7 @@ The code in model files should be ordered as follows:
 2. Validations
 3. Callbacks
 4. Ruby definitions: frozen constants, `enum`, and framework macros
-   (`rolify`, `has_secure_password`, `normalizes`, …)
+   (`has_secure_password`, `normalizes`, …)
 5. Scopes
 6. Delegations
 7. Class methods
@@ -32,7 +32,7 @@ The code in model files should be ordered as follows:
 9. Private methods
 
 Exception: a definition may move above its slot when something earlier needs
-it at class-load time — e.g. `User::ROLES` is defined first because a
+it at class-load time — e.g. a `STATUSES` constant is defined first because a
 validation references it.
 
 ## Deletion semantics
