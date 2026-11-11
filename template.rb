@@ -42,6 +42,22 @@ if mismatched.any?
   abort_template "This template requires `-d postgresql --css tailwind`; got #{got}."
 end
 
+# Filled into rails/CLAUDE.md.tt by `directory` below.
+def project_name
+  app_name.titleize
+end
+
+# TEMPLATE_DESCRIPTION answers the prompt, even when empty. A blank answer
+# leaves a TODO marker like the docs' other placeholders.
+def project_description
+  @project_description ||= begin
+    answer = ENV.fetch("TEMPLATE_DESCRIPTION") { ask("Describe the project in one sentence (blank to fill in later):") }
+    answer.to_s.strip.empty? ? "<!-- TODO: One-paragraph overview of the project. -->" : answer.strip
+  end
+end
+
+project_description
+
 directory "rails", "."
 chmod "bin/worktree-teardown", 0755
 

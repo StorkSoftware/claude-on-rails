@@ -25,7 +25,7 @@ blocks run in the order the recipes are applied, so the recipe list in
 
 | File | Covers |
 | --- | --- |
-| [CLAUDE.md](rails/CLAUDE.md) | Stack, commands, checks, code style, testing, architecture, CSP, UI, commits |
+| [CLAUDE.md.tt](rails/CLAUDE.md.tt) | Stack, commands, checks, code style, testing, architecture, CSP, UI, commits. Rendered as `CLAUDE.md` with the project name, description, and Ruby and Rails versions filled in |
 | [CONTEXT.md](rails/CONTEXT.md) | Domain glossary (empty template) |
 | [app/controllers/CLAUDE.md](rails/app/controllers/CLAUDE.md) | Namespacing, responses, strong parameters |
 | [app/models/CLAUDE.md](rails/app/models/CLAUDE.md) | Structural map (placeholder), code ordering, deletion semantics |
@@ -82,8 +82,15 @@ template.
 | `TEMPLATE_POSTMARK` | Will you use postmark for receiving emails? (`postmark-rails`) |
 | `TEMPLATE_LLM` | Do you need LLM support? (`ruby_llm`) |
 
+The template also asks for a one-sentence project description, which becomes
+the overview in the generated `CLAUDE.md`. `TEMPLATE_DESCRIPTION` answers it;
+unlike the yes/no variables, setting it to an empty string counts as an answer
+and leaves a `TODO` marker in place of the overview. The project name is always
+the app name in title case (`my_app` becomes `My App`).
+
 ```bash
 TEMPLATE_2FA=y TEMPLATE_STRIPE=n TEMPLATE_POSTMARK=n TEMPLATE_LLM=y \
+TEMPLATE_DESCRIPTION="Booking system for climbing gyms." \
   rails new my_app -d postgresql --css tailwind -m ~/Development/Claude/template.rb
 ```
 
@@ -122,8 +129,8 @@ Every project-specific gap in the copied docs is marked with an HTML comment:
 grep -rn "TODO" --include="*.md" .
 ```
 
-Start with the project name and overview in `CLAUDE.md`, and the glossary in
-`CONTEXT.md`.
+Start with the overview in `CLAUDE.md` if you left the description blank, and
+the glossary in `CONTEXT.md`.
 
 ### Set up what the docs assume
 
