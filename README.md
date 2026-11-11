@@ -10,6 +10,7 @@ generic, project-agnostic set of `CLAUDE.md` files for Claude Code.
 | [template.rb](template.rb) | The application template passed to `rails new -m`: prompts, shared gems and the ordered list of recipes |
 | [recipes/](recipes/) | One file per step. Each recipe adds its own gems, applies its patch and makes its own commit |
 | [rails/](rails/) | Copied verbatim into the new app's root, keeping its structure |
+| [bin/ci](bin/ci) | Verifies the template end to end; see [Verifying changes](#verifying-changes) |
 
 ### Adding a recipe
 
@@ -33,6 +34,24 @@ blocks run in the order the recipes are applied, so the recipe list in
 | [db/CLAUDE.md](rails/db/CLAUDE.md) | Keeping `db/README.md` in sync, migrations, database safety |
 | [db/README.md](rails/db/README.md) | Schema documentation (template) |
 | [.vscode/tasks.json](rails/.vscode/tasks.json) | VS Code tasks: console, server, Tailwind watcher, jobs, coverage report |
+
+### Verifying changes
+
+```bash
+bin/ci              # every option on and every option off, in parallel
+bin/ci on           # one combination (on or off)
+bin/ci --keep off   # keep the app and its databases for debugging
+```
+
+For each combination, `bin/ci` generates a fresh app in a temp directory
+(with `--no-rc`, so `~/.railsrc` doesn't affect it), then:
+
+1. fails on generator errors or changes the template left uncommitted;
+2. runs `bin/rails db:prepare` and fails on pending migrations;
+3. runs the app's own `bin/ci --with-system-tests`, which needs Chrome.
+
+Afterwards it drops the app's databases and deletes it. A failed run prints
+the end of its log and keeps the log file. A full run takes about a minute.
 
 ## Usage
 

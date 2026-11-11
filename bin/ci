@@ -1,0 +1,139 @@
+#!/usr/bin/env ruby
+# Verifies template.rb end to end. For each combination of answers it
+# generates a fresh app, then runs db:prepare, checks for pending migrations
+# and runs the app's own `bin/ci --with-system-tests`. The apps and their
+# databases are removed afterwards; logs of failed runs are kept.
+#
+#   bin/ci              # every option on and every option off, in parallel
+#   bin/ci on           # one combination
+#   bin/ci --keep off   # keep the app and its databases for debugging
+
+require "fileutils"
+require "tmpdir"
+
+ROOT = File.expand_path("..", __dir__)
+TEMPLATE = File.join(ROOT, "template.rb")
+QUESTIONS = %w[2FA STRIPE POSTMARK LLM].freeze
+COMBINATIONS = { "on" => "y", "off" => "n" }.freeze
+OUTPUT = Mutex.new
+
+def say(message)
+  OUTPUT.synchronize { puts message }
+end
+
+class Run
+  Failure = Class.new(StandardError)
+
+  attr_reader :name, :log
+
+  def initialize(name, answer, dir)
+    @name = name
+    @dir = dir
+    @app_name = "template_ci_#{name}_#{Process.pid}"
+    @app = File.join(dir, @app_name)
+    @log = File.join(dir, "#{name}.log")
+    # Isolate the generated app from whatever environment bin/ci runs in.
+    @env = { "BUNDLE_GEMFILE" => nil, "RUBYOPT" => nil, "RAILS_ENV" => nil, "DB_SUFFIX" => nil }
+    QUESTIONS.each { |question| @env["TEMPLATE_#{question}"] = answer }
+  end
+
+  def call
+    step("Generate app") do
+      run! @dir, "rails", "new", @app_name, "--no-rc", "-d", "postgresql", "--css", "tailwind", "-m", TEMPLATE
+      problems = File.readlines(@log).grep(/^\s*(error|conflict)\s/)
+      fail! "generator reported:\n#{problems.join}" if problems.any?
+      dirty = capture(@app, "git", "status", "--porcelain")
+      fail! "template left uncommitted changes:\n#{dirty}" unless dirty.strip.empty?
+    end
+
+    step("db:prepare") { run! @app, "bin/rails", "db:prepare" }
+
+    step("No pending migrations") do
+      pending = capture(@app, "bin/rails", "db:migrate:status").lines.grep(/^\s*down\s/)
+      fail! "pending migrations:\n#{pending.join}" if pending.any?
+    end
+
+    step("bin/ci --with-system-tests") { run! @app, "bin/ci", "--with-system-tests" }
+    true
+  rescue Failure => e
+    say "[#{@name}] FAIL #{e.message}"
+    say File.readlines(@log).last(30).map { |line| "[#{@name}]   #{line}" }.join
+    false
+  end
+
+  def cleanup
+    databases.each do |database|
+      system("psql", "-d", "postgres", "-qc", %(DROP DATABASE IF EXISTS "#{database}"), out: File::NULL, err: File::NULL)
+    end
+    FileUtils.rm_rf(@app)
+    leftover = databases
+    say "[#{@name}] could not drop: #{leftover.join(", ")}" if leftover.any?
+  end
+
+  def kept
+    say "[#{@name}] kept #{@app}; databases: #{databases.join(", ")}"
+  end
+
+  private
+    def step(title)
+      started = Time.now
+      yield
+      say format("[%s] ok   %s (%ds)", @name, title, Time.now - started)
+    rescue Failure => e
+      raise Failure, "#{title}: #{e.message}"
+    end
+
+    def run!(dir, *command)
+      ok = system(@env, *command, chdir: dir, in: File::NULL, out: [ @log, "a" ], err: [ :child, :out ])
+      fail! "`#{command.join(" ")}` exited with #{$?.exitstatus}" unless ok
+    end
+
+    def capture(dir, *command)
+      output = IO.popen(@env, command, chdir: dir, in: File::NULL, err: [ :child, :out ], &:read)
+      File.write(@log, output, mode: "a")
+      fail! "`#{command.join(" ")}` exited with #{$?.exitstatus}" unless $?.success?
+      output
+    end
+
+    def fail!(message)
+      raise Failure, message
+    end
+
+    # Every database whose name starts with the app's, including the cache,
+    # queue and cable databases and any parallel test worker copies.
+    def databases
+      IO.popen(%w[psql -lqtA], err: File::NULL, &:read).lines
+        .map { |line| line.split("|").first.to_s.strip }
+        .select { |database| database.start_with?(@app_name) }
+    end
+end
+
+keep = ARGV.delete("--keep")
+names = ARGV.empty? ? COMBINATIONS.keys : ARGV.uniq
+unknown = names - COMBINATIONS.keys
+abort "Unknown combination: #{unknown.join(", ")}. Use #{COMBINATIONS.keys.join(" or ")}." if unknown.any?
+
+dir = Dir.mktmpdir("template-ci-")
+runs = names.map { |name| Run.new(name, COMBINATIONS.fetch(name), dir) }
+started = Time.now
+say "Verifying #{TEMPLATE} (#{names.join(", ")}) in #{dir}"
+
+results = runs.map { |run| Thread.new { run.call } }.map(&:value)
+
+runs.zip(results).each do |run, passed|
+  if keep
+    run.kept
+  else
+    run.cleanup
+    FileUtils.rm_f(run.log) if passed
+  end
+end
+FileUtils.rm_rf(dir) if !keep && results.all?
+
+failed = runs.zip(results).reject { |_, passed| passed }.map { |run, _| run }
+if failed.empty?
+  say format("All passed: %s (%ds)", names.join(", "), Time.now - started)
+else
+  say "Failed: #{failed.map(&:name).join(", ")}. Logs: #{failed.map(&:log).join(", ")}"
+  exit 1
+end
