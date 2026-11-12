@@ -21,6 +21,13 @@ commit in `after_bundle`, and end it with `commit "<message>"`. `after_bundle`
 blocks run in the order the recipes are applied, so the recipe list in
 `template.rb` sets the commit order.
 
+Files a recipe adds whole (controllers, views, tests) go in a folder named
+after it, laid out like the app, and are copied with
+`directory "recipes/<name>", "."`. The `.rb` file keeps only the patches to
+files that already exist. Name a file `.tt` if it needs ERB evaluated by the
+template; everything else, including `.html.erb` views, is copied as it is.
+See [recipes/two_factor/](recipes/two_factor/).
+
 `rails/` holds:
 
 | File | Covers |
@@ -114,6 +121,7 @@ TEMPLATE_DESCRIPTION="Booking system for climbing gyms." \
    | `Use Solid Queue in development` | [solid_queue](recipes/solid_queue.rb) | Sets the `solid_queue` job adapter and queue database in `config/environments/development.rb` |
    | `Generate authentication` | [authentication](recipes/authentication.rb) | Runs `db:prepare`, the authentication generator and its migration, and seeds `dev@localhost.test` / `password` |
    | `Add home page as root` | [home](recipes/home.rb) | Generates `HomeController#index` and points `root` at it |
+   | `Add two-factor authentication` | [two_factor](recipes/two_factor.rb) | Only if chosen: TOTP enrolment with a QR code, a code challenge after password sign-in (expires after 5 minutes), `users.otp_secret` encrypted with keys added to credentials, and tests. The 2FA sections of `CLAUDE.md` are only included in this case |
    | `Add system tests pinned to a single worker` | [system_tests](recipes/system_tests.rb) | Adds `test/application_system_test_case.rb` (headless Chrome, one worker, coverage merged into the unit run) and a sign-in test that checks Turbo and Stimulus boot |
    | `Add bin/ci --with-system-tests and a pre-push hook` | [ci](recipes/ci.rb) | Adds the opt-in system test step to `config/ci.rb`, and a `.githooks/pre-push` hook running `bin/ci` that `bin/setup` activates |
    | `Enforce a same-origin Content Security Policy` | [csp](recipes/csp.rb) | Sets every fetch directive to `'self'`, `script-src` with `'strict-dynamic'` and a per-session nonce, and Active Storage proxy mode |

@@ -17,7 +17,9 @@ changes, and keep them current as decisions are made.
 - **Jobs**: Solid Queue (DB-backed Active Job)
 - **WebSockets**: Solid Cable (DB-backed Action Cable)
 - **Auth**: Rails 8 built-in authentication generator (`has_secure_password`, session-based)
+<%- if two_factor? -%>
 - **2FA**: `rotp` (TOTP) + `rqrcode` (QR code generation)
+<%- end -%>
 - **Testing**: Minitest + Fixtures + Capybara/Selenium for system tests
 - **Linting/Security**: RuboCop (rubocop-rails-omakase), Brakeman, bundler-audit, importmap audit
 - **Files**: Active Storage (proxy mode — see [Content Security Policy](#content-security-policy))
@@ -97,18 +99,24 @@ Testing guidelines are in [test/CLAUDE.md](test/CLAUDE.md)
   database, configured in `config/database.yml`. In development they run inside
   the Puma process started by `bin/dev`.
 
+<%- if two_factor? -%>
 ## Two-Factor Authentication
 
 TOTP via `rotp`; the provisioning QR code is rendered with `rqrcode`.
 
-- **Enrolment**: the user scans a QR code and enters a code to verify. The
-  pending secret lives in the session until confirmed, then is persisted to
-  `users.otp_secret`.
-- **Login challenge**: when a user with `otp_secret` logs in,
-  `SessionsController#create` stores the pending user id in the session and
-  redirects to the TOTP challenge instead of issuing the session cookie. On a
-  valid code, `start_new_session_for` is called normally.
+- **Enrolment** (`TwoFactorSetupsController`): the user scans a QR code and
+  enters a code to verify. The pending secret lives in the session until
+  confirmed, then is persisted to `users.otp_secret`, which is encrypted with
+  Active Record encryption (keys in credentials).
+- **Login challenge** (`TwoFactorChallengesController`): when a user with
+  `otp_secret` logs in, `SessionsController#create` stores the pending user id
+  in the session and redirects to the TOTP challenge instead of issuing the
+  session cookie. The pending sign-in expires after 5 minutes. On a valid
+  code, `start_new_session_for` is called normally.
+- The pending-sign-in helpers live in the `TwoFactorChallenge` concern; code
+  checks live on `User` (`verify_otp`, `enable_two_factor`).
 
+<%- end -%>
 ## Content Security Policy
 
 Enforced in every environment from `config/initializers/content_security_policy.rb`,

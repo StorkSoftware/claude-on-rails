@@ -58,6 +58,14 @@ end
 
 project_description
 
+# Asked before `directory`, because rails/CLAUDE.md.tt documents 2FA only when
+# it is installed.
+@two_factor = ask?("2FA", "Do you need 2FA?")
+
+def two_factor?
+  @two_factor
+end
+
 directory "rails", "."
 chmod "bin/worktree-teardown", 0755
 
@@ -65,11 +73,6 @@ gem "lucide-rails"
 
 gem_group :development do
   gem "hotwire-spark", "~> 0.1.13"
-end
-
-if ask?("2FA", "Do you need 2FA?")
-  gem "rotp"
-  gem "rqrcode"
 end
 
 if ask?("STRIPE", "Do you need stripe?")
@@ -94,6 +97,7 @@ recipe "solid_cable"
 recipe "solid_queue"
 recipe "authentication"
 recipe "home"
+recipe "two_factor" if two_factor?
 recipe "system_tests"
 recipe "ci"
 recipe "csp"
