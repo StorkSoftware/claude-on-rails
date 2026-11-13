@@ -58,12 +58,17 @@ end
 
 project_description
 
-# Asked before `directory`, because rails/CLAUDE.md.tt documents 2FA only when
-# it is installed.
+# Asked before `directory`, because rails/CLAUDE.md.tt documents 2FA and
+# Stripe only when they are installed.
 @two_factor = ask?("2FA", "Do you need 2FA?")
+@stripe = ask?("STRIPE", "Do you need Stripe payments?")
 
 def two_factor?
   @two_factor
+end
+
+def stripe?
+  @stripe
 end
 
 directory "rails", "."
@@ -73,10 +78,6 @@ gem "lucide-rails"
 
 gem_group :development do
   gem "hotwire-spark", "~> 0.1.13"
-end
-
-if ask?("STRIPE", "Do you need stripe?")
-  gem "stripe"
 end
 
 if ask?("POSTMARK", "Will you use postmark for receiving emails?")
@@ -101,4 +102,5 @@ recipe "two_factor" if two_factor?
 recipe "system_tests"
 recipe "ci"
 recipe "csp"
+recipe "stripe" if stripe?
 recipe "ruby_llm" if use_llm

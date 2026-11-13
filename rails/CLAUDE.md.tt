@@ -20,6 +20,9 @@ changes, and keep them current as decisions are made.
 <%- if two_factor? -%>
 - **2FA**: `rotp` (TOTP) + `rqrcode` (QR code generation)
 <%- end -%>
+<%- if stripe? -%>
+- **Payments**: `stripe` — Checkout on Stripe's hosted page, webhooks at `/stripe/callback`
+<%- end -%>
 - **Testing**: Minitest + Fixtures + Capybara/Selenium for system tests
 - **Linting/Security**: RuboCop (rubocop-rails-omakase), Brakeman, bundler-audit, importmap audit
 - **Files**: Active Storage (proxy mode — see [Content Security Policy](#content-security-policy))
@@ -115,6 +118,31 @@ TOTP via `rotp`; the provisioning QR code is rendered with `rqrcode`.
   code, `start_new_session_for` is called normally.
 - The pending-sign-in helpers live in the `TwoFactorChallenge` concern; code
   checks live on `User` (`verify_otp`, `enable_two_factor`).
+
+<%- end -%>
+<%- if stripe? -%>
+## Stripe
+
+- **Keys**: `stripe.secret_key` and `stripe.webhook_secret` in credentials,
+  read in `config/initializers/stripe.rb`. Production refuses to boot without
+  them; development boots and Stripe calls fail until they are added. Tests use
+  fake values from `config/environments/test.rb` and never call Stripe.
+- **Taking payments**: create a Checkout Session and redirect to Stripe's hosted
+  page, as `StripeCheckoutsController#create` does. Replace its example `ITEM`
+  with what the app sells. This is the only payment UI that fits the
+  [Content Security Policy](#content-security-policy): it needs just
+  `form-action https://checkout.stripe.com`. Stripe.js and Elements would need
+  Stripe's origins in `script-src`, `frame-src` and `connect-src`, which is a
+  change to the policy, not to a page.
+- **Fulfilment happens in the webhook, never on the success page.** Stripe posts
+  events to `/stripe/callback` (`StripeCallbacksController`), which checks the
+  signature, stores the event in `stripe_events` once (unique `stripe_id`, so
+  repeated deliveries are ignored) and queues `StripeEventJob`. Add handling to
+  `StripeEvent#process`; `processed_at` stays blank when it raises.
+- **Retention**: `StripeEventCleanupJob` (daily, `config/recurring.yml`) deletes
+  processed events after 90 days.
+- **Local webhooks**: run `stripe listen --forward-to localhost:3000/stripe/callback`
+  and put the `whsec_...` it prints into credentials as `stripe.webhook_secret`.
 
 <%- end -%>
 ## Content Security Policy

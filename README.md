@@ -85,7 +85,7 @@ template.
 | Variable | Prompt |
 | --- | --- |
 | `TEMPLATE_2FA` | Do you need 2FA? (`rotp`, `rqrcode`) |
-| `TEMPLATE_STRIPE` | Do you need stripe? (`stripe`) |
+| `TEMPLATE_STRIPE` | Do you need Stripe payments? (`stripe`, `minitest-mock`) |
 | `TEMPLATE_POSTMARK` | Will you use postmark for receiving emails? (`postmark-rails`) |
 | `TEMPLATE_LLM` | Do you need LLM support? (`ruby_llm`) |
 
@@ -106,8 +106,8 @@ TEMPLATE_DESCRIPTION="Booking system for climbing gyms." \
 1. Copies everything in `rails/` into the new app.
 2. Adds gems:
    - always: `lucide-rails`, `simplecov` (test), `hotwire-spark` (development);
-   - on request: `rotp` + `rqrcode` (2FA), `stripe`, `postmark-rails`,
-     `ruby_llm`.
+   - on request: `rotp` + `rqrcode` (2FA), `stripe` + `minitest-mock` (test),
+     `postmark-rails`, `ruby_llm`.
 3. Prepends the SimpleCov setup from [recipes/simplecov.rb](recipes/simplecov.rb) to `test/test_helper.rb`, so coverage
    is reported to `coverage/index.html` on every test run (minimum 80%).
 4. After `bundle install`, commits each step separately:
@@ -125,6 +125,7 @@ TEMPLATE_DESCRIPTION="Booking system for climbing gyms." \
    | `Add system tests pinned to a single worker` | [system_tests](recipes/system_tests.rb) | Adds `test/application_system_test_case.rb` (headless Chrome, one worker, coverage merged into the unit run) and a sign-in test that checks Turbo and Stimulus boot |
    | `Add bin/ci --with-system-tests and a pre-push hook` | [ci](recipes/ci.rb) | Adds the opt-in system test step to `config/ci.rb`, and a `.githooks/pre-push` hook running `bin/ci` that `bin/setup` activates |
    | `Enforce a same-origin Content Security Policy` | [csp](recipes/csp.rb) | Sets every fetch directive to `'self'`, `script-src` with `'strict-dynamic'` and a per-session nonce, and Active Storage proxy mode |
+   | `Add Stripe Checkout and webhook callback` | [stripe](recipes/stripe.rb) | Only if chosen: a "Make a test payment" button that redirects to Stripe Checkout, a success page, signed webhooks at `/stripe/callback` stored once in `stripe_events` and handled by a job, daily cleanup of processed events after 90 days, and tests. Production refuses to boot without `stripe.secret_key` and `stripe.webhook_secret` in credentials. The Stripe sections of `CLAUDE.md` are only included in this case |
    | `Install RubyLLM` | [ruby_llm](recipes/ruby_llm.rb) | Only if chosen: runs `ruby_llm:install` and its migrations |
 
 ## After generating
