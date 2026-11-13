@@ -40,15 +40,30 @@ after_bundle do
   YAML
 
   inject_into_file "app/views/home/index.html.erb", before: %r{</div>\s*\z} do
-    <<~ERB.gsub(/^/, "  ")
-      <%= button_to t("stripe_checkouts.pay"), stripe_checkout_path, form: { class: "mt-4", data: { turbo: false } }, class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-medium cursor-pointer" %>
+    <<~ERB.gsub(/^(?!$)/, "  ")
+
+      <div class="mt-6 bg-white shadow-sm sm:rounded-lg dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10">
+        <div class="px-4 py-5 sm:p-6">
+          <h2 class="text-base font-semibold text-gray-900 dark:text-white"><%= t("stripe_checkouts.panel.heading") %></h2>
+          <div class="mt-2 sm:flex sm:items-start sm:justify-between">
+            <p class="max-w-xl text-sm text-gray-500 dark:text-gray-400"><%= t("stripe_checkouts.panel.body") %></p>
+            <div class="mt-5 sm:mt-0 sm:ml-6 sm:flex sm:shrink-0 sm:items-center">
+              <%# Turbo submits with fetch, which cannot follow the redirect to Stripe. %>
+              <%= button_to t("stripe_checkouts.panel.pay"), stripe_checkout_path, form: { data: { turbo: false } }, class: "inline-flex cursor-pointer items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:shadow-none dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500" %>
+            </div>
+          </div>
+        </div>
+      </div>
     ERB
   end
 
   append_to_file "config/locales/en.yml" do
     <<-YAML
   stripe_checkouts:
-    pay: "Make a test payment"
+    panel:
+      heading: "Payments"
+      body: "Pay for the example item on Stripe's checkout page. Use a test card in test mode."
+      pay: "Make a test payment"
     create:
       item_name: "Test item"
     success:

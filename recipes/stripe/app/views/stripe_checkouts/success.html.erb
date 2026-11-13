@@ -1,6 +1,17 @@
-<div class="mx-auto md:w-2/3 w-full">
-  <h1 class="font-bold text-4xl"><%= t(".heading") %></h1>
-  <p class="mt-2 text-gray-600"><%= t(".body") %></p>
+<div class="mx-auto w-full max-w-3xl">
+  <div class="md:flex md:items-center md:justify-between">
+    <div class="min-w-0 flex-1">
+      <h1 class="text-2xl/7 font-bold text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight dark:text-white"><%= t(".heading") %></h1>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4">
+      <%= link_to t(".back"), root_path, class: "inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs inset-ring inset-ring-gray-300 hover:bg-gray-50 dark:bg-white/10 dark:text-white dark:shadow-none dark:inset-ring-white/5 dark:hover:bg-white/20" %>
+    </div>
+  </div>
 
-  <p class="mt-4"><%= link_to t(".back"), root_path, class: "text-blue-600 underline hover:no-underline" %></p>
+  <div class="mt-8 overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10">
+    <div class="flex px-4 py-5 sm:p-6">
+      <div class="shrink-0"><%= lucide_icon "circle-check", class: "size-5 text-green-500 dark:text-green-400", "aria-hidden": "true" %></div>
+      <p class="ml-3 text-sm text-gray-700 dark:text-gray-300"><%= t(".body") %></p>
+    </div>
+  </div>
 </div>

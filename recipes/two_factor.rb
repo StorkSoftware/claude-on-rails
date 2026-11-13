@@ -81,18 +81,30 @@ after_bundle do
     RUBY
   end
 
-  inject_into_file "app/views/home/index.html.erb", after: "<div>\n" do
-    <<~ERB.gsub(/^/, "  ")
-      <% if notice = flash[:notice] %>
-        <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-lg inline-block" id="notice"><%= notice %></p>
-      <% end %>
-    ERB
-  end
-
   inject_into_file "app/views/home/index.html.erb", before: %r{</div>\s*\z} do
-    <<~ERB.gsub(/^/, "  ")
+    <<~ERB.gsub(/^(?!$)/, "  ")
+
+      <% if notice = flash[:notice] %>
+        <div id="notice" class="mt-6 rounded-md bg-green-50 p-4 dark:bg-green-500/10 dark:outline dark:outline-green-500/20">
+          <div class="flex">
+            <div class="shrink-0"><%= lucide_icon "circle-check", class: "size-5 text-green-400", "aria-hidden": "true" %></div>
+            <p class="ml-3 text-sm font-medium text-green-800 dark:text-green-200"><%= notice %></p>
+          </div>
+        </div>
+      <% end %>
+
       <% unless Current.user.two_factor_enabled? %>
-        <p class="mt-4"><%= link_to t(".set_up_two_factor"), new_two_factor_setup_path, class: "text-blue-600 underline hover:no-underline" %></p>
+        <div class="mt-6 bg-white shadow-sm sm:rounded-lg dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10">
+          <div class="px-4 py-5 sm:p-6">
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white"><%= t(".two_factor_heading") %></h2>
+            <div class="mt-2 sm:flex sm:items-start sm:justify-between">
+              <p class="max-w-xl text-sm text-gray-500 dark:text-gray-400"><%= t(".two_factor_body") %></p>
+              <div class="mt-5 sm:mt-0 sm:ml-6 sm:flex sm:shrink-0 sm:items-center">
+                <%= link_to t(".set_up_two_factor"), new_two_factor_setup_path, class: "inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:shadow-none dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500" %>
+              </div>
+            </div>
+          </div>
+        </div>
       <% end %>
     ERB
   end
@@ -100,11 +112,16 @@ after_bundle do
   route "resource :two_factor_setup, only: %i[ new create ]"
   route "resource :two_factor_challenge, only: %i[ new create ]"
 
+  inject_into_file "config/locales/en.yml", after: "  home:\n    index:\n" do
+    <<-YAML
+      two_factor_heading: "Two-factor authentication"
+      two_factor_body: "Ask for a code from your authenticator app every time you sign in."
+      set_up_two_factor: "Set up"
+    YAML
+  end
+
   append_to_file "config/locales/en.yml" do
     <<-YAML
-  home:
-    index:
-      set_up_two_factor: "Set up two-factor authentication"
   two_factor_challenges:
     new:
       heading: "Two-factor authentication"
