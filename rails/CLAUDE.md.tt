@@ -51,7 +51,7 @@ bin/bundler-audit        # Gem CVE check
 bin/rails db:prepare     # Create, migrate, and seed the database
 bin/rails db:migrate     # Run pending migrations
 bin/rails db:rollback    # Roll back the last migration
-bin/rails credentials:edit   # Edit encrypted secrets
+bin/rails credentials:edit --environment development   # Edit secrets (or production)
 ```
 
 ## Checks
@@ -101,6 +101,13 @@ Testing guidelines are in [test/CLAUDE.md](test/CLAUDE.md)
 - **Solid adapters**: Cache, Queue and Cable each use their own PostgreSQL
   database, configured in `config/database.yml`. In development they run inside
   the Puma process started by `bin/dev`.
+- **Credentials**: one encrypted file and key per environment,
+  `config/credentials/{development,production}.yml.enc` with
+  `config/credentials/<env>.key`. There is no `config/master.key`. The keys are
+  gitignored; never commit them, and never put a production secret in the
+  development file. Test has no credentials: test values go in
+  `config/environments/test.rb`. Kamal sends `production.key` as
+  `RAILS_MASTER_KEY` (see `.kamal/secrets`).
 
 <%- if two_factor? -%>
 ## Two-Factor Authentication
@@ -110,7 +117,8 @@ TOTP via `rotp`; the provisioning QR code is rendered with `rqrcode`.
 - **Enrolment** (`TwoFactorSetupsController`): the user scans a QR code and
   enters a code to verify. The pending secret lives in the session until
   confirmed, then is persisted to `users.otp_secret`, which is encrypted with
-  Active Record encryption (keys in credentials).
+  Active Record encryption (keys in each environment's credentials; fixed test
+  keys in `config/environments/test.rb`).
 - **Login challenge** (`TwoFactorChallengesController`): when a user with
   `otp_secret` logs in, `SessionsController#create` stores the pending user id
   in the session and redirects to the TOTP challenge instead of issuing the
@@ -123,9 +131,11 @@ TOTP via `rotp`; the provisioning QR code is rendered with `rqrcode`.
 <%- if stripe? -%>
 ## Stripe
 
-- **Keys**: `stripe.secret_key` and `stripe.webhook_secret` in credentials,
-  read in `config/initializers/stripe.rb`. Production refuses to boot without
-  them; development boots and Stripe calls fail until they are added. Tests use
+- **Keys**: `stripe.secret_key` and `stripe.webhook_secret` in each
+  environment's credentials (test-mode keys in development, live keys in
+  production), read in `config/initializers/stripe.rb`. Production refuses to
+  boot without them; development boots and Stripe calls fail until they are
+  added. Tests use
   fake values from `config/environments/test.rb` and never call Stripe.
 - **Taking payments**: create a Checkout Session and redirect to Stripe's hosted
   page, as `StripeCheckoutsController#create` does. Replace its example `ITEM`
@@ -142,7 +152,8 @@ TOTP via `rotp`; the provisioning QR code is rendered with `rqrcode`.
 - **Retention**: `StripeEventCleanupJob` (daily, `config/recurring.yml`) deletes
   processed events after 90 days.
 - **Local webhooks**: run `stripe listen --forward-to localhost:3000/stripe/callback`
-  and put the `whsec_...` it prints into credentials as `stripe.webhook_secret`.
+  and put the `whsec_...` it prints into the development credentials as
+  `stripe.webhook_secret`.
 
 <%- end -%>
 ## Content Security Policy

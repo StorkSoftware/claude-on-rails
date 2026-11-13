@@ -11,7 +11,7 @@ if Rails.env.production? && ENV["SECRET_KEY_BASE_DUMMY"].blank?
   if missing.any?
     raise <<~MESSAGE
       Stripe is enabled but credentials are missing: #{missing.map { |key| "stripe.#{key}" }.join(", ")}.
-      Add them with `bin/rails credentials:edit`:
+      Add them with `bin/rails credentials:edit --environment production`:
 
         stripe:
           secret_key: sk_live_...

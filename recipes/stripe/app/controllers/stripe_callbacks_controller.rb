@@ -15,6 +15,6 @@ class StripeCallbacksController < ActionController::API
   private
     def webhook_secret
       Rails.configuration.x.stripe.webhook_secret.presence or
-        raise "stripe.webhook_secret is not set. Add it with `bin/rails credentials:edit`."
+        raise "stripe.webhook_secret is not set. Add it with `bin/rails credentials:edit --environment #{Rails.env}`."
     end
 end

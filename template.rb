@@ -1,3 +1,5 @@
+require "active_support/encrypted_configuration"
+
 def source_paths
   [ __dir__ ] + super
 end
@@ -11,6 +13,22 @@ end
 
 def commit(message)
   git add: ".", commit: %(-m '#{message}')
+end
+
+# The app's encrypted credentials for one environment, which the credentials
+# recipe splits into config/credentials/<environment>.{yml.enc,key}.
+def credentials_for(environment)
+  ActiveSupport::EncryptedConfiguration.new(
+    config_path: File.join(destination_root, "config/credentials/#{environment}.yml.enc"),
+    key_path: File.join(destination_root, "config/credentials/#{environment}.key"),
+    env_key: "RAILS_MASTER_KEY",
+    raise_if_missing_key: true
+  )
+end
+
+def append_credentials(environment, yaml)
+  credentials = credentials_for(environment)
+  credentials.write(credentials.read + yaml)
 end
 
 # Asks a yes/no question unless TEMPLATE_<KEY> answers it, so the template can
@@ -94,6 +112,7 @@ end
 recipe "simplecov"
 recipe "database"
 recipe "setup"
+recipe "credentials"
 recipe "solid_cable"
 recipe "solid_queue"
 recipe "authentication"

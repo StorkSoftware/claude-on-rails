@@ -6,7 +6,6 @@
 # New files (controllers, concern, helper, views, controller tests) live in
 # recipes/two_factor/ and are copied as they are. This file only patches the
 # files the authentication and home recipes generated.
-require "active_support/encrypted_configuration"
 require "securerandom"
 
 gem "rotp"
@@ -16,20 +15,22 @@ after_bundle do
   generate "migration", "AddOtpSecretToUsers", "otp_secret:string"
   rails_command "db:migrate"
 
-  # `encrypts :otp_secret` needs Active Record encryption keys.
-  credentials = ActiveSupport::EncryptedConfiguration.new(
-    config_path: File.join(destination_root, "config/credentials.yml.enc"),
-    key_path: File.join(destination_root, "config/master.key"),
-    env_key: "RAILS_MASTER_KEY",
-    raise_if_missing_key: true
-  )
-  credentials.write(credentials.read + <<~YAML)
+  # `encrypts :otp_secret` needs Active Record encryption keys: separate ones
+  # per environment, and fixed ones for tests, which have no credentials.
+  %w[development production].each do |environment|
+    append_credentials environment, <<~YAML
 
-    active_record_encryption:
-      primary_key: #{SecureRandom.alphanumeric(32)}
-      deterministic_key: #{SecureRandom.alphanumeric(32)}
-      key_derivation_salt: #{SecureRandom.alphanumeric(32)}
-  YAML
+      active_record_encryption:
+        primary_key: #{SecureRandom.alphanumeric(32)}
+        deterministic_key: #{SecureRandom.alphanumeric(32)}
+        key_derivation_salt: #{SecureRandom.alphanumeric(32)}
+    YAML
+  end
+
+  # `environment` inserts at the top of the block, so these land in reverse.
+  environment 'config.active_record.encryption.key_derivation_salt = "test-key-derivation-salt"', env: "test"
+  environment 'config.active_record.encryption.deterministic_key = "test-deterministic-key"', env: "test"
+  environment 'config.active_record.encryption.primary_key = "test-primary-key"', env: "test"
 
   directory "recipes/two_factor", "."
 
