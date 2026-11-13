@@ -1,0 +1,51 @@
+#!/usr/bin/env ruby
+require "fileutils"
+require "zlib"
+
+# Ports 3100-3899; 3000 is the main checkout's server and 3002 its system tests.
+PORT_RANGE = 3100..3899
+
+def system!(*args)
+  system(*args, exception: true)
+end
+
+branch = ARGV.first.to_s
+abort "Usage: bin/worktree-new <branch>" if branch.empty? || ARGV.size > 1
+abort "'#{branch}' is not a valid branch name" unless system("git", "check-ref-format", "--branch", branch, out: File::NULL, err: File::NULL)
+
+main_checkout = File.dirname(IO.popen(%w[git rev-parse --path-format=absolute --git-common-dir], &:read).strip)
+worktrees_root = File.expand_path("../wt", main_checkout)
+worktree = File.join(worktrees_root, branch.tr("/", "-"))
+abort "#{worktree} already exists" if File.exist?(worktree)
+
+# Must equal the suffix config/database.yml and bin/worktree-teardown derive from the directory.
+db_suffix = "_" + File.basename(worktree).gsub(/\W/, "_")[0, 30]
+
+taken_ports = Dir.glob(File.join(worktrees_root, "*", ".env.local")).filter_map { |file| File.read(file)[/^PORT=(\d+)$/, 1]&.to_i }
+port = PORT_RANGE.begin + Zlib.crc32(branch) % PORT_RANGE.size
+port = PORT_RANGE.begin + (port - PORT_RANGE.begin + 1) % PORT_RANGE.size while taken_ports.include?(port)
+
+FileUtils.chdir main_checkout
+puts "== Creating worktree #{worktree} =="
+if system("git", "show-ref", "--verify", "--quiet", "refs/heads/#{branch}")
+  system! "git", "worktree", "add", worktree, branch
+else
+  system! "git", "worktree", "add", "-b", branch, worktree, "main"
+end
+
+key = "config/credentials/development.key"
+FileUtils.cp key, File.join(worktree, key) if File.exist?(key)
+
+File.write File.join(worktree, ".env.local"), <<~ENV
+  DB_SUFFIX=#{db_suffix}
+  PORT=#{port}
+ENV
+
+env = { "DB_SUFFIX" => db_suffix, "PORT" => port.to_s }
+FileUtils.chdir worktree
+puts "\n== Preparing development database =="
+system! env, "bin/rails db:prepare"
+puts "\n== Preparing test database =="
+system! env.merge("RAILS_ENV" => "test"), "bin/rails db:prepare"
+
+puts "\nWorktree ready: #{worktree} (databases *#{db_suffix}, PORT=#{port})"
