@@ -86,7 +86,6 @@ template.
 | --- | --- |
 | `TEMPLATE_2FA` | Do you need 2FA? (`rotp`, `rqrcode`) |
 | `TEMPLATE_STRIPE` | Do you need Stripe payments? (`stripe`, `minitest-mock`) |
-| `TEMPLATE_POSTMARK` | Will you use postmark for receiving emails? (`postmark-rails`) |
 | `TEMPLATE_LLM` | Do you need LLM support? (`ruby_llm`) |
 
 The template also asks for a one-sentence project description, which becomes
@@ -96,7 +95,7 @@ and leaves a `TODO` marker in place of the overview. The project name is always
 the app name in title case (`my_app` becomes `My App`).
 
 ```bash
-TEMPLATE_2FA=y TEMPLATE_STRIPE=n TEMPLATE_POSTMARK=n TEMPLATE_LLM=y \
+TEMPLATE_2FA=y TEMPLATE_STRIPE=n TEMPLATE_LLM=y \
 TEMPLATE_DESCRIPTION="Booking system for climbing gyms." \
   rails new my_app -d postgresql --css tailwind -m ~/Development/Claude/template.rb
 ```
@@ -107,7 +106,7 @@ TEMPLATE_DESCRIPTION="Booking system for climbing gyms." \
 2. Adds gems:
    - always: `lucide-rails`, `simplecov` (test), `hotwire-spark` (development);
    - on request: `rotp` + `rqrcode` (2FA), `stripe` + `minitest-mock` (test),
-     `postmark-rails`, `ruby_llm`.
+     `ruby_llm`.
 3. Prepends the SimpleCov setup from [recipes/simplecov.rb](recipes/simplecov.rb) to `test/test_helper.rb`, so coverage
    is reported to `coverage/index.html` on every test run (minimum 80%).
 4. After `bundle install`, commits each step separately:

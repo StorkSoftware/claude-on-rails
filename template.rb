@@ -80,7 +80,6 @@ project_description
 # document only what is installed.
 @two_factor = ask?("2FA", "Do you need 2FA?")
 @stripe = ask?("STRIPE", "Do you need Stripe payments?")
-@postmark = ask?("POSTMARK", "Will you use postmark for receiving emails?")
 @llm = ask?("LLM", "Do you need LLM support?")
 
 def two_factor?
@@ -103,8 +102,6 @@ gem "lucide-rails"
 gem_group :development do
   gem "hotwire-spark", "~> 0.1.13"
 end
-
-gem "postmark-rails" if @postmark
 
 after_bundle do
   git :init
