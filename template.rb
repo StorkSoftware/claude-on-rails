@@ -76,10 +76,12 @@ end
 
 project_description
 
-# Asked before `directory`, because rails/CLAUDE.md.tt documents 2FA and
-# Stripe only when they are installed.
+# Asked before `directory`, because rails/CLAUDE.md.tt and rails/db/README.md.tt
+# document only what is installed.
 @two_factor = ask?("2FA", "Do you need 2FA?")
 @stripe = ask?("STRIPE", "Do you need Stripe payments?")
+@postmark = ask?("POSTMARK", "Will you use postmark for receiving emails?")
+@llm = ask?("LLM", "Do you need LLM support?")
 
 def two_factor?
   @two_factor
@@ -87,6 +89,10 @@ end
 
 def stripe?
   @stripe
+end
+
+def llm?
+  @llm
 end
 
 directory "rails", "."
@@ -98,11 +104,7 @@ gem_group :development do
   gem "hotwire-spark", "~> 0.1.13"
 end
 
-if ask?("POSTMARK", "Will you use postmark for receiving emails?")
-  gem "postmark-rails"
-end
-
-use_llm = ask?("LLM", "Do you need LLM support?")
+gem "postmark-rails" if @postmark
 
 after_bundle do
   git :init
@@ -122,4 +124,5 @@ recipe "system_tests"
 recipe "ci"
 recipe "csp"
 recipe "stripe" if stripe?
-recipe "ruby_llm" if use_llm
+recipe "ruby_llm" if llm?
+recipe "docs"

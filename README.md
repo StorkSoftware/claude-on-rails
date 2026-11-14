@@ -33,13 +33,13 @@ See [recipes/two_factor/](recipes/two_factor/).
 | File | Covers |
 | --- | --- |
 | [CLAUDE.md.tt](rails/CLAUDE.md.tt) | Stack, commands, checks, code style, testing, architecture, CSP, UI, commits. Rendered as `CLAUDE.md` with the project name, description, and Ruby and Rails versions filled in |
-| [CONTEXT.md](rails/CONTEXT.md) | Domain glossary (empty template) |
+| [CONTEXT.md.tt](rails/CONTEXT.md.tt) | Domain glossary (empty template), rendered with the project name |
 | [app/controllers/CLAUDE.md](rails/app/controllers/CLAUDE.md) | Namespacing, responses, strong parameters |
 | [app/models/CLAUDE.md](rails/app/models/CLAUDE.md) | Structural map (placeholder), code ordering, deletion semantics |
 | [app/views/CLAUDE.md](rails/app/views/CLAUDE.md) | Tailwind Plus components, view conventions, forms, localisation |
 | [config/locales/CLAUDE.md](rails/config/locales/CLAUDE.md) | Locale structure, validation messages, copy voice |
 | [db/CLAUDE.md](rails/db/CLAUDE.md) | Keeping `db/README.md` in sync, migrations, database safety |
-| [db/README.md](rails/db/README.md) | Schema documentation (template) |
+| [db/README.md.tt](rails/db/README.md.tt) | Schema documentation, rendered with the tables the chosen options create; the `docs` recipe stamps the schema version |
 | [.vscode/tasks.json](rails/.vscode/tasks.json) | VS Code tasks: console, server, Tailwind watcher, jobs, coverage report |
 
 ### Verifying changes
@@ -128,12 +128,15 @@ TEMPLATE_DESCRIPTION="Booking system for climbing gyms." \
    | `Enforce a same-origin Content Security Policy` | [csp](recipes/csp.rb) | Sets every fetch directive to `'self'`, `script-src` with `'strict-dynamic'` and a per-session nonce, and Active Storage proxy mode |
    | `Add Stripe Checkout and webhook callback` | [stripe](recipes/stripe.rb) | Only if chosen: a "Make a test payment" button that redirects to Stripe Checkout, a success page, signed webhooks at `/stripe/callback` stored once in `stripe_events` and handled by a job, daily cleanup of processed events after 90 days, and tests. Production refuses to boot without `stripe.secret_key` and `stripe.webhook_secret` in credentials. The Stripe sections of `CLAUDE.md` are only included in this case |
    | `Install RubyLLM` | [ruby_llm](recipes/ruby_llm.rb) | Only if chosen: runs `ruby_llm:install` and its migrations |
+   | `Stamp the schema version in db/README.md` | [docs](recipes/docs.rb) | Writes the final `db/schema.rb` version into `db/README.md`, so the docs start in sync with the schema |
 
 ## After generating
 
 ### Fill in the placeholders
 
-Every project-specific gap in the copied docs is marked with an HTML comment:
+The template fills in what it knows: the project name, the tables its recipes
+create and the schema version. Every remaining project-specific gap in the
+copied docs is marked with an HTML comment:
 
 ```bash
 grep -rn "TODO" --include="*.md" .

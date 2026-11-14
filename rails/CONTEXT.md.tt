@@ -1,6 +1,6 @@
 # Domain glossary
 
-The ubiquitous language of <!-- TODO: project name -->. Code, tests, UI copy,
+The ubiquitous language of <%= project_name %>. Code, tests, UI copy,
 ADRs and conversation all use these terms with exactly these meanings. When a
 term changes meaning or a new one appears, update this file in the same commit.
 

@@ -2,7 +2,7 @@
 
 ## Structure
 
-- Locales: `en.yml` <!-- TODO: list any other locales, e.g. `de.yml` -->.
+- Locales: `en.yml`.
   All locales are always updated together — never add a key to one without
   the others.
 - View copy keys mirror the view path so Rails lazy lookup works:
