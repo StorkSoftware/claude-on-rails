@@ -86,7 +86,7 @@ template.
 | --- | --- |
 | `TEMPLATE_2FA` | Do you need 2FA? (`rotp`, `rqrcode`) |
 | `TEMPLATE_STRIPE` | Do you need Stripe payments? (`stripe`, `minitest-mock`) |
-| `TEMPLATE_LLM` | Do you need LLM support? (`ruby_llm`) |
+| `TEMPLATE_LLM` | Do you need LLM support? (`ruby_llm`, `webmock`) |
 
 The template also asks for a one-sentence project description, which becomes
 the overview in the generated `CLAUDE.md`. `TEMPLATE_DESCRIPTION` answers it;
@@ -106,7 +106,7 @@ TEMPLATE_DESCRIPTION="Booking system for climbing gyms." \
 2. Adds gems:
    - always: `lucide-rails`, `simplecov` (test), `hotwire-spark` (development);
    - on request: `rotp` + `rqrcode` (2FA), `stripe` + `minitest-mock` (test),
-     `ruby_llm`.
+     `ruby_llm` + `webmock` (test).
 3. Prepends the SimpleCov setup from [recipes/simplecov.rb](recipes/simplecov.rb) to `test/test_helper.rb`, so coverage
    is reported to `coverage/index.html` on every test run (minimum 80%).
 4. After `bundle install`, commits each step separately:
@@ -126,7 +126,7 @@ TEMPLATE_DESCRIPTION="Booking system for climbing gyms." \
    | `Add bin/ci --with-system-tests and a pre-push hook` | [ci](recipes/ci.rb) | Adds the opt-in system test step to `config/ci.rb`, and a `.githooks/pre-push` hook running `bin/ci` that `bin/setup` activates |
    | `Enforce a same-origin Content Security Policy` | [csp](recipes/csp.rb) | Sets every fetch directive to `'self'`, `script-src` with `'strict-dynamic'` and a per-session nonce, and Active Storage proxy mode |
    | `Add Stripe Checkout and webhook callback` | [stripe](recipes/stripe.rb) | Only if chosen: a "Make a test payment" button that redirects to Stripe Checkout, a success page, signed webhooks at `/stripe/callback` stored once in `stripe_events` and handled by a job, daily cleanup of processed events after 90 days, and tests. Production refuses to boot without `stripe.secret_key` and `stripe.webhook_secret` in credentials. The Stripe sections of `CLAUDE.md` are only included in this case |
-   | `Install RubyLLM` | [ruby_llm](recipes/ruby_llm.rb) | Only if chosen: runs `ruby_llm:install` and its migrations |
+   | `Install RubyLLM` | [ruby_llm](recipes/ruby_llm.rb) | Only if chosen: adds an initializer reading `ruby_llm.anthropic_api_key` and `ruby_llm.openai_api_key` from each environment's credentials, with empty keys in the development and production credentials, and blocks network calls in tests with `webmock`, with a test that checks it. No tables or models; run `bin/rails generate ruby_llm:install` when the app needs them. The RubyLLM section of `CLAUDE.md` is only included in this case |
    | `Stamp the schema version in db/README.md` | [docs](recipes/docs.rb) | Writes the final `db/schema.rb` version into `db/README.md`, so the docs start in sync with the schema |
 
 ## After generating
