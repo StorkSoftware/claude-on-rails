@@ -67,18 +67,9 @@ fails; processed events are deleted after 90 days.
 
 Not diagrammed, not ours to shape:
 
-<% if llm? -%>
-- `chats`, `messages` and the `ruby_llm_*` tables — created by RubyLLM
-  (`ruby_llm:install` and the gem's own migrations). `chats` and `messages`
-  move into a cluster above once the app builds its own behaviour on them.
-- `active_storage_blobs` / `_attachments` / `_variant_records` — uploads,
-  installed with RubyLLM. Must stay in **proxy mode** so blobs are served from
-  our own origin (see the CSP rules in the root CLAUDE.md).
-<% else -%>
 - Active Storage is not installed. If it is added, it must stay in **proxy
   mode** so blobs are served from our own origin (see the CSP rules in the
   root CLAUDE.md).
-<% end -%>
 - Solid Queue, Cache and Cable each own a separate PostgreSQL database with its
   own schema file: [queue_schema.rb](queue_schema.rb),
   [cache_schema.rb](cache_schema.rb), [cable_schema.rb](cable_schema.rb).

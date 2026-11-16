@@ -23,6 +23,9 @@ changes, and keep them current as decisions are made.
 <%- if stripe? -%>
 - **Payments**: `stripe` — Checkout on Stripe's hosted page, webhooks at `/stripe/callback`
 <%- end -%>
+<%- if llm? -%>
+- **LLM**: `ruby_llm`, `webmock` blocks network calls in tests
+<%- end -%>
 - **Testing**: Minitest + Fixtures + Capybara/Selenium for system tests
 - **Linting/Security**: RuboCop (rubocop-rails-omakase), Brakeman, bundler-audit, importmap audit
 - **Files**: Active Storage (proxy mode — see [Content Security Policy](#content-security-policy))
@@ -154,6 +157,19 @@ TOTP via `rotp`; the provisioning QR code is rendered with `rqrcode`.
 - **Local webhooks**: run `stripe listen --forward-to localhost:3000/stripe/callback`
   and put the `whsec_...` it prints into the development credentials as
   `stripe.webhook_secret`.
+
+<%- end -%>
+<%- if llm? -%>
+## RubyLLM
+
+- **Keys**: `ruby_llm.anthropic_api_key` and `ruby_llm.openai_api_key` in each
+  environment's credentials, read in `config/initializers/ruby_llm.rb`. Add
+  other providers there the same way, never from `ENV`. The app boots without
+  keys; calls to a provider without one fail.
+- **Tests never reach the network.** `test/test_helper.rb` calls
+  `WebMock.disable_net_connect!(allow_localhost: true)`, so a test that would
+  call a provider fails instead of spending money. Stub the request with
+  `stub_request` and assert on what the app does with the response.
 
 <%- end -%>
 ## Content Security Policy
